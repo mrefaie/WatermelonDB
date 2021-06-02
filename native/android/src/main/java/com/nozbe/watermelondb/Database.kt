@@ -2,23 +2,36 @@ package com.nozbe.watermelondb
 
 import android.content.Context
 import android.database.Cursor
-import android.database.sqlite.SQLiteDatabase
+// import android.database.sqlite.SQLiteDatabase
+import org.sqlite.database.sqlite.SQLiteDatabase;
+import org.sqlite.database.sqlite.SQLiteStatement;
+import org.sqlite.database.sqlite.SQLiteException;
 import java.io.File
 
-class Database(private val name: String, private val context: Context) {
+class Database(private val name: String, private val query: String, private val context: Context) {
 
     private val db: SQLiteDatabase by lazy {
-        SQLiteDatabase.openOrCreateDatabase(
-                // TODO: This SUCKS. Seems like Android doesn't like sqlite `?mode=memory&cache=shared` mode. To avoid random breakages, save the file to /tmp, but this is slow.
-                // NOTE: This is because Android system SQLite is not compiled with SQLITE_USE_URI=1
-                // issue `PRAGMA cache=shared` query after connection when needed
-                if (name == ":memory:" || name.contains("mode=memory")) {
-                    context.cacheDir.delete()
-                    File(context.cacheDir, name).path
-                } else
-                    // On some systems there is some kind of lock on `/databases` folder ¯\_(ツ)_/¯
-                    context.getDatabasePath("$name.db").path.replace("/databases", ""),
-                null)
+        System.loadLibrary("sqliteX")
+        val dd:SQLiteDatabase
+
+        try {
+            dd = SQLiteDatabase.openOrCreateDatabase(
+                    // TODO: This SUCKS. Seems like Android doesn't like sqlite `?mode=memory&cache=shared` mode. To avoid random breakages, save the file to /tmp, but this is slow.
+                    // NOTE: This is because Android system SQLite is not compiled with SQLITE_USE_URI=1
+                    // issue `PRAGMA cache=shared` query after connection when needed
+                    if (name == ":memory:" || name.contains("mode=memory")) {
+                        context.cacheDir.delete()
+                        File(context.cacheDir, name).path
+                    } else
+                        // On some systems there is some kind of lock on `/databases` folder ¯\_(ツ)_/¯
+                        "file:" + context.getDatabasePath("$name.db").getAbsolutePath().replace("/databases", "") + query,
+                    null)
+        } catch (ex: SQLiteException) {
+            throw Error("DB open: " + ex.toString());
+        }
+
+        Thread.sleep(2_000)
+        dd
     }
 
     var userVersion: Int

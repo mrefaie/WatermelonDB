@@ -36,6 +36,7 @@ dependencies {
     //noinspection GradleDynamicVersion
     implementation 'com.facebook.react:react-native:+'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${getExtOrDefault('kotlinVersion')}"
+    implementation fileTree(include: ['*.jar', '*.aar'], dir: './libs')
 }
 
 repositories {

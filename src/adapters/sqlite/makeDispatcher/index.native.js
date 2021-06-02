@@ -37,6 +37,7 @@ export const makeDispatcher = (
   type: DispatcherType,
   tag: ConnectionTag,
   dbName: string,
+  dbQuery: string,
 ): NativeDispatcher => {
   const jsiDb = type === 'jsi' && global.nativeWatermelonCreateAdapter(dbName)
 
